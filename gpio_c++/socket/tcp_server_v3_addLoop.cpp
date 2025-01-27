@@ -33,7 +33,7 @@ int main() {
         exit(EXIT_FAILURE);
     }
     address.sin_family = AF_INET;
-    address.sin_addr.s_addr = inet_addr("192.168.1.74");//INADDR_ANY;
+    address.sin_addr.s_addr = inet_addr("192.168.2.48");//INADDR_ANY; //192.168.1.74
     address.sin_port = htons(PORT);
     // Bind the socket to the network address and port
     if (bind(server_fd, (struct sockaddr*)&address, sizeof(address)) < 0) {
@@ -77,7 +77,16 @@ int main() {
            std::cout << "\nelapsed_ms = " << elapsed_ms << ". Timeout\n";
            break;
         }
+        buffer[valread] =  '\0';
     	std::cout << "Received: " << buffer << ", valread=" << valread << std::endl;
+
+        //check if "quit" is received
+        if(std::string(buffer).compare("quit") == 0) 
+        {
+            std::cout << "Client quit. Exiting this conversation.\n";
+            break;
+        }
+
     	send(new_socket, buffer, valread, 0);
     	std::cout << "Echo message sent" << std::endl;
         //todo: add code to check if client indicating leaving
