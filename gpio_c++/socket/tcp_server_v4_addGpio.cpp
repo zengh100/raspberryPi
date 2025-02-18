@@ -154,3 +154,16 @@ int main() {
     close(server_fd);
     return 0;
 }
+/*
+Code refactoring is the process of restructuring existing code without changing its external behavior. 
+The goal is to improve the code's design, structure, and readability, while also making it easier to maintain. 
+*/
+/*
+todo list 2025.01.26
+- code refactor
+- add set gpio function
+  * redesign command formats: 
+      read pin: getxx (0 =< xx <=27)
+      set pin:  setxx,y,z
+
+*/
