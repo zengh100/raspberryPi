@@ -54,7 +54,7 @@ int main() {
         send(sock, input.c_str(), input.size(), 0);
         std::cout << "message sent: " << hello << std::endl;
 
-	if (input == "quit") break;
+	    if (input == "quit") break;
 
         //prepare to receive from server
         buffer[0] = '\0'; //empty buffer

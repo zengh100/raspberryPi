@@ -16,7 +16,7 @@
 #include <stdlib.h>
 #include <vector>
 
-//Build: g++ -o myServer tcp_server.cpp
+//Build: g++ -o server6 tcp_server_v6_addSetCmd.cpp -lpi-gpio
 //Build: g++ -o client4 tcp_client_v4.cpp -lpi-gpio
 using namespace std;
 
@@ -83,13 +83,59 @@ std::vector<std::string> split(std::string my_str)
    }
    return result;
 }
+bool convertStrToInteger(std::string strIn, int& i)
+{
+    // retrive pin, input/output, value
+    i = atoi(strIn.c_str());
+    //itoa (pin,buffer,10);
+    std::stringstream ss;
+    ss << i;
+    std::string iStr2 = ss.str();
+    //std::string pinStr2 = std::string(buffer);
+    std::cout << "iStr2=" << iStr2 << "\n";
+    if(strIn.compare(iStr2) != 0) {
+        std::cout << "invalid number, reset integer to -1\n";
+        i = -1;
+        return true;
+    }
+    return false;
+}
+
+bool checkRange(int v, int vMin, int vMax)
+{
+    return vMin <= v && v <= vMax;
+}
 
 bool process_set(const int& new_socket, std::string bufString)
 {
     bool gpioCmd = false;
     int valread = bufString.size();
     //example string: "set,8,1,1", "set,19,0,0"
+
     std::vector<std::string> params = split(bufString);
+    if(params.size() < 4)
+    {
+        cout << "it should have 4 strings in params\n";
+        return false;
+    }
+    //check first string is "set"
+    if(params[0] != "set") return false;
+
+    // retrive pin, input/output, value
+    int pin = -1;
+    int mode = -1; //1=ouput, 0 = input
+    int value = -1; //1=HIGH, 0 = LOW
+    if(!convertStrToInteger(params[1], pin)) return false;
+    if(!convertStrToInteger(params[2], mode)) return false;
+    if(!convertStrToInteger(params[3], value)) return false;
+
+    cout << "pin:" << pin << ", mode:" << mode << ", value:" << value << "\n";
+    // check pin is between [0,27]
+    // check mode is between [0,1]
+    // check value is between [0,1]
+    if(!checkRange(pin, 0,27)) return false;
+    if(!checkRange(mode, 0,1)) return false;
+    if(!checkRange(value, 0,1)) return false;
 
 /*
     std::string  pinStr = bufString.substr(3,valread); //"get8" should return "8"
@@ -243,6 +289,6 @@ todo list 2025.01.26
 - add set gpio function
   * redesign command formats: 
       read pin: getxx (0 =< xx <=27)
-      set pin:  setxx,y,z
+      set pin:  set,pin,input/output,value(o or 1)
 
 */
