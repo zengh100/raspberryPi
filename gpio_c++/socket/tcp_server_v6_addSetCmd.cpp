@@ -92,13 +92,14 @@ bool convertStrToInteger(std::string strIn, int& i)
     ss << i;
     std::string iStr2 = ss.str();
     //std::string pinStr2 = std::string(buffer);
-    std::cout << "iStr2=" << iStr2 << "\n";
-    if(strIn.compare(iStr2) != 0) {
+    std::cout << "strIn=" << strIn << ", iStr2=" << iStr2 << "\n";
+    if(strIn.compare(iStr2) != 0) //they are different, conversion failed 
+    {
         std::cout << "invalid number, reset integer to -1\n";
         i = -1;
-        return true;
+        return false;
     }
-    return false;
+    return true;
 }
 
 bool checkRange(int v, int vMin, int vMax)
@@ -108,6 +109,7 @@ bool checkRange(int v, int vMin, int vMax)
 
 bool process_set(const int& new_socket, std::string bufString)
 {
+    cout << "process_set: bufString=" << bufString << "\n";
     bool gpioCmd = false;
     int valread = bufString.size();
     //example string: "set,8,1,1", "set,19,0,0"
@@ -119,7 +121,11 @@ bool process_set(const int& new_socket, std::string bufString)
         return false;
     }
     //check first string is "set"
-    if(params[0] != "set") return false;
+    if(params[0] != "set") 
+    {
+        cout << "process_set: params[0]=" << params[0] << " return false\n";
+        return false;
+    }
 
     // retrive pin, input/output, value
     int pin = -1;
@@ -136,30 +142,22 @@ bool process_set(const int& new_socket, std::string bufString)
     if(!checkRange(pin, 0,27)) return false;
     if(!checkRange(mode, 0,1)) return false;
     if(!checkRange(value, 0,1)) return false;
-
-/*
-    std::string  pinStr = bufString.substr(3,valread); //"get8" should return "8"
-    std::cout << "pinStr=" << pinStr << "\n";
-    //what if pinStr == "t1"?
-    int pin = atoi(pinStr.c_str());
-    //itoa (pin,buffer,10);
-    std::stringstream ss;
-    ss << pin;
-    std::string pinStr2 = ss.str();
-    //std::string pinStr2 = std::string(buffer);
-    std::cout << "pinStr2=" << pinStr2 << "\n";
-    if(pinStr.compare(pinStr2) != 0) {
-        std::cout << "invalid number, reset pin to -1\n";
-        pin =-1;
-    }
-    std::cout << "pin=" << pin << "\n";
+    //2025.02.18: will continue from here next class
     //check pin range
     if (pin >=0 && pin < 28)
     {
         gpioCmd = true;
+
+        if(mode==1)
+            setup_gpio(pin, OUTPUT, value); // Set pin OUTPUT and value to be value
+        else
+            setup_gpio(pin, INPUT, 0); // Set pin INTPUT
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+        // Read the same pin and send back the readings
         int n = input_gpio(pin);
         int f = gpio_function(pin);
-        int p = (f == 0) ? get_pullupdn(pin) : 0; // only input
+        int p = (f == 0) ? get_pullupdn(pin) : 0; // only input (f==0?) p: pulldown?
         std::stringstream ss;
         if (f == 0)
         {
@@ -171,11 +169,12 @@ bool process_set(const int& new_socket, std::string bufString)
             //printf("GPIO %2i Value=%i Function %i\n", pin, n, f);
             ss << "GPIO " << pin << ": Value=" << n << " Function=" << f;
         }
+
         std::string str = ss.str();
         send(new_socket, str.c_str(), str.size(), 0);
         std::cout << "sent: " << str << std::endl;
     }
-    */
+
     return gpioCmd;
 }
 
@@ -216,6 +215,8 @@ int main() {
     }
     std::cout << "connected!" << std::endl;
     setup();
+    std::string welcome = "Welcome! type example: get8";
+    send(new_socket, welcome.c_str(), welcome.size(), 0);
     ssize_t valread = 0;
     while(1)
     {
@@ -256,21 +257,27 @@ int main() {
         if(bufString.substr(0,3).compare("get") == 0)
 	    {
             gpioCmd = process_get(new_socket, bufString);
+            if(!gpioCmd)
+            {
+                std::string prompt = "Not a valid query! type example: get8";
+                send(new_socket, prompt.c_str(), prompt.size(), 0);
+                //send(new_socket, buffer, valread, 0);
+                std::cout << "send: " << prompt << std::endl;
+            }            
         }
         if(bufString.substr(0,3).compare("set") == 0)
         {
             // expect to recieve: setxxyz where xx=pin number, y=input(0) or output(1), z=high(1) or low(0)
             // new design: set,pin,input/output,value
             gpioCmd = process_set(new_socket, bufString);
+            if(!gpioCmd)
+            {
+                std::string prompt = "Not a valid request! type example: set,8,1,1";
+                send(new_socket, prompt.c_str(), prompt.size(), 0);
+                //send(new_socket, buffer, valread, 0);
+                std::cout << "send: " << prompt << std::endl;
+            }            
         }
-
-        if(!gpioCmd)
-        {
-            std::string prompt = "Not a valid query! type example: get8";
-            send(new_socket, prompt.c_str(), prompt.size(), 0);
-    		//send(new_socket, buffer, valread, 0);
-	    	std::cout << prompt << std::endl;
-	    }
     };
 
     cleanup();
