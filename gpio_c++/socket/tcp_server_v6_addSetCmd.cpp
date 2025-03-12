@@ -149,7 +149,10 @@ bool process_set(const int& new_socket, std::string bufString)
         gpioCmd = true;
 
         if(mode==1)
+        {
             setup_gpio(pin, OUTPUT, value); // Set pin OUTPUT and value to be value
+            output_gpio(pin, value);
+        }
         else
             setup_gpio(pin, INPUT, 0); // Set pin INTPUT
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
