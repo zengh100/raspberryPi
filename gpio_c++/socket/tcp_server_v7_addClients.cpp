@@ -276,7 +276,8 @@ int main() {
         exit(EXIT_FAILURE);
     }
     // Start listening for incoming connections
-    if (listen(server_fd, 3) < 0) {
+    const int MAXCLIENTS = 3;
+    if (listen(server_fd, MAXCLIENTS) < 0) {
         perror("listen");
         exit(EXIT_FAILURE);
     }
@@ -285,31 +286,36 @@ int main() {
     setup();
 
     // run accept in a loop so that multiple clients can be accepted
-    const int MAXCLIENTS = 3;
  	std::thread socket_threads[MAXCLIENTS];
 	int i = 0;
+    int numOfClients = 0;
 	while (i < MAXCLIENTS)
     {
-        // Accept incoming connection
-        if ((new_socket = accept(server_fd, (struct sockaddr*)&address, &addrlen)) < 0) {
-            perror("accept");
-            exit(EXIT_FAILURE);
-        }
-        else
+        if (numOfClients < MAXCLIENTS)
         {
-            std::cout << "connected to IP:" << inet_ntoa(address.sin_addr) << ", port:" << ntohs(address.sin_port) << std::endl;
-            //create a new thread for this client
-            clientSockets.push_back(new_socket);
-			socket_threads[i] = thread(cl_new_socket, server_fd, new_socket, i);
-			cout << "While looop i=" << i << endl;
+            // Accept incoming connection
+            if ((new_socket = accept(server_fd, (struct sockaddr*)&address, &addrlen)) < 0) {
+                perror("accept");
+                exit(EXIT_FAILURE);
+            }
+            else
+            {
+                std::cout << "connected to IP:" << inet_ntoa(address.sin_addr) << ", port:" << ntohs(address.sin_port) << std::endl;
+                //create a new thread for this client
+                clientSockets.push_back(new_socket);
+                socket_threads[i] = thread(cl_new_socket, server_fd, new_socket, i);
+                cout << "While looop i=" << i << endl;
+                numOfClients++;
+            }
         }
         i++;
+        if(i >= MAXCLIENTS) i = MAXCLIENTS-1;
     }
-    // Accept incoming connection
-    if ((new_socket = accept(server_fd, (struct sockaddr*)&address, &addrlen)) < 0) {
-        perror("accept");
-        exit(EXIT_FAILURE);
-    }
+    // // Accept incoming connection
+    // if ((new_socket = accept(server_fd, (struct sockaddr*)&address, &addrlen)) < 0) {
+    //     perror("accept");
+    //     exit(EXIT_FAILURE);
+    // }
 
 
 
