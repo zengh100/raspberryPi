@@ -3,4 +3,5 @@ ssh pi@192.168.2.48
 scp .\gpio_c++\socket\tcp_server_v11_multiClients.cpp pi@192.168.2.48://home/pi/newgit/raspberryPi/gpio_c++/socket/
 scp .\gpio_c++\socket\tcp_server_v6_addSetCmd.cpp pi@192.168.2.48://home/pi/newgit/raspberryPi/gpio_c++/socket/
 scp .\gpio_c++\socket\tcp_server_v7_addClients.cpp pi@192.168.2.48://home/pi/newgit/raspberryPi/gpio_c++/socket/
+scp .\tcp_server_v7_addClients.cpp  pi@192.168.2.48:/home/pi/newgit/raspberryPi/gpio_c++/socket/
 g++ -o server7 tcp_server_v7_addClients.cpp -lpi-gpio

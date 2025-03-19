@@ -181,9 +181,10 @@ bool process_set(const int& new_socket, std::string bufString)
     return gpioCmd;
 }
 
-void cl_new_socket(int server_fd, int  new_socket, int threadID) 
+void cl_new_socket(int server_fd, int  new_socket, int* numOfClients, int threadID) 
 {
     std::string welcome = "Welcome! type example: get8";
+    std::cout << "New thread! threadID=" << threadID << "\n";
     char buffer[BUFFER_SIZE] = {0};
     send(new_socket, welcome.c_str(), welcome.size(), 0);
     ssize_t valread = 0;
@@ -218,7 +219,10 @@ void cl_new_socket(int server_fd, int  new_socket, int threadID)
         //check if "quit" is received
         if(std::string(buffer).compare("quit") == 0) 
         {
-            std::cout << "Client quit. Exiting this conversation.\n";
+            //Should decrease numOfClient
+            //numOfClients--;
+            *numOfClients -= 1;
+            std::cout << "Client quit. Exiting this conversation. numOfClients=" << *numOfClients << "\n";
             break;
         }
  	    std::string bufString = std::string(buffer);
@@ -286,10 +290,11 @@ int main() {
     setup();
 
     // run accept in a loop so that multiple clients can be accepted
- 	std::thread socket_threads[MAXCLIENTS];
+ 	//std::thread socket_threads[MAXCLIENTS];
+    std::vector<std::thread> threads;
 	int i = 0;
     int numOfClients = 0;
-	while (i < MAXCLIENTS)
+	while (1)
     {
         if (numOfClients < MAXCLIENTS)
         {
@@ -303,13 +308,13 @@ int main() {
                 std::cout << "connected to IP:" << inet_ntoa(address.sin_addr) << ", port:" << ntohs(address.sin_port) << std::endl;
                 //create a new thread for this client
                 clientSockets.push_back(new_socket);
-                socket_threads[i] = thread(cl_new_socket, server_fd, new_socket, i);
-                cout << "While looop i=" << i << endl;
+                //socket_threads[i] = thread(cl_new_socket, server_fd, new_socket, &numOfClients, i);
+                threads.push_back(thread(cl_new_socket, server_fd, new_socket, &numOfClients, i));
                 numOfClients++;
+                cout << "While looop i=" << i << ", numOfClients = " << numOfClients << endl;
+                i++;
             }
         }
-        i++;
-        if(i >= MAXCLIENTS) i = MAXCLIENTS-1;
     }
     // // Accept incoming connection
     // if ((new_socket = accept(server_fd, (struct sockaddr*)&address, &addrlen)) < 0) {
