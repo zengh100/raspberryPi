@@ -316,13 +316,6 @@ int main() {
             }
         }
     }
-    // // Accept incoming connection
-    // if ((new_socket = accept(server_fd, (struct sockaddr*)&address, &addrlen)) < 0) {
-    //     perror("accept");
-    //     exit(EXIT_FAILURE);
-    // }
-
-
 
     cleanup();
     // Close the socket
@@ -337,6 +330,12 @@ The goal is to improve the code's design, structure, and readability, while also
 /*
 todo list 2025.03.04 for next week
 - manage clients
-    - remove quit clients and allow new client to connect
-    - broadcast set command to all clients
+    - remove quit clients and allow new client to connect (done)
+    - broadcast set command to all clients (not yet)
+*/
+// refactor to use classes
+/* Let get ChatGPT to help us refactor our source code
+Prompt to ChatGPT:
+Refactor the following C++ program which is a server running on Raspberry Pi capable to communicate with multiple clients. It can accept multiple clients to connect and request to set or get the pins (input or output, and pin values, etc.). Your job is to improve the code by creating classes such as Server class, connection class, and management class to manage client connections.  Connection Manage class should have a function to print existing connections (such their IP and port). Here is the current source code: 
+
 */
