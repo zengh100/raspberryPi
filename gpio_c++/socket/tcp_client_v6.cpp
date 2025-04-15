@@ -8,7 +8,8 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 
-//Build: g++ -o client5 tcp_client_v5.cpp -lpi-gpio
+//Build: g++ -o client5 tcp_client_v5.cpp 
+//for client no need -lpi-gpio since the commuincation/control of Pi is done by TCP/IP
 
 constexpr int PORT = 8081;
 constexpr int BUFFER_SIZE = 1024;

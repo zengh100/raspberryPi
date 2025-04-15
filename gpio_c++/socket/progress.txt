@@ -1,2 +1,11 @@
 2025.03.25
 Refactor code to use classes: server, connection, connections (manage clients)
+
+2025.04.01
+gpio_c++\socket\tcp_server_v8_ClassBased_DS.01.cpp works
+
+2025.04.08
+make it build and work: gpio_c++\socket\tcp_server_v8_ClassBased.02.cpp
+
+2025.04.15
+todo: gpio_c++\socket\tcp_server_v8_ClassBased.03.cpp able to remove quit connection

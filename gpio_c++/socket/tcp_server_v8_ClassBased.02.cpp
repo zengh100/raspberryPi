@@ -189,8 +189,8 @@ bool process_set(const int& new_socket, std::string bufString)
 // Connection class to handle individual client connections
 class Connection {
 public:
-    Connection(int socket, sockaddr_in addr, int* numOfClients) 
-        : socket_(socket), address_(addr), m_numOfClients(numOfClients) {}
+    Connection(int socket, sockaddr_in addr) 
+        : socket_(socket), address_(addr) {}
     
     void handle() {
         std::string welcome = "Welcome! type example: get8";
@@ -224,7 +224,6 @@ public:
 
             // Process "quit" message
             if (bufString == "quit") {
-                *m_numOfClients -= 1;
                 break;
             }
 
@@ -255,38 +254,42 @@ public:
 private:
     int socket_;
     sockaddr_in address_;
-    int* m_numOfClients;
 };
 
 // ConnectionManager class to handle multiple connections
 class ConnectionManager {
 public:
-    void addConnection(int socket, sockaddr_in addr, int* numOfClients) {
+    void addConnection(int socket, sockaddr_in addr) {
         auto connection = std::make_shared<Connection>(socket, addr);
         //connections_.push_back(t);
-        auto t = std::thread(&Connection::handle, connection);
+        //auto t = std::thread(&Connection::handle, connection);
         //threads.push_back(t);
         //t.join();
-        connectionMap[connection] = t;
+        //connectionMap[connection] = t;
+        connectionMap[connection] = std::thread(&Connection::handle, connection);
     }
 
     void printActiveConnections() const {
         // for (const auto& conn : connections_) {
         //     std::cout << conn->getClientInfo() << std::endl;
         // }
-        for (const auto& conn : connections_) {
-            std::cout << conn->getClientInfo() << std::endl;
-        }
+        // for (const auto& conn : connections_) {
+        //     std::cout << conn->getClientInfo() << std::endl;
+        // }
         for (const auto& [conn, t] : connectionMap)
-            std::cout << conn->getClientInfo() << ", thread=" <<  << std::endl;       
+            std::cout << conn->getClientInfo() << ", thread=" << t.get_id() << std::endl;       
     }
 
     void removeConnection(shared_ptr<Connection> connection) 
     {
-        if(connectionMap.find(connection))
-        {
-            connectionMap.erase(connection);
-        }
+        // if(connectionMap.find(connection))
+        // {
+        //     connectionMap.erase(connection);
+        // }
+        auto it = connectionMap.find(connection);
+        if (it != connectionMap.end()) {
+            connectionMap.erase(it);
+        }        
     }
 
     int getNumOfConnections() {return connectionMap.size();}
@@ -311,8 +314,7 @@ public:
 
     void run() {
         while (true) {
-            //numOfClients = connectionManager.getNumOfConnections
-            if (numOfClients < MAXCLIENTS) {
+            if (connectionManager.getNumOfConnections() < MAXCLIENTS) {
                 sockaddr_in clientAddr;
                 socklen_t addrlen = sizeof(clientAddr);
 
@@ -325,9 +327,8 @@ public:
                 std::cout << "New connection from IP: " << inet_ntoa(clientAddr.sin_addr)
                           << ", Port: " << ntohs(clientAddr.sin_port) << std::endl;
 
-                connectionManager.addConnection(new_socket, clientAddr, &numOfClients);
-                numOfClients++;
-                std::cout << "Number of clients: " << numOfClients << std::endl;
+                connectionManager.addConnection(new_socket, clientAddr);
+                std::cout << "Number of clients: " << connectionManager.getNumOfConnections() << std::endl;
             }
 
             //connectionManager.handleConnections();
@@ -367,7 +368,6 @@ private:
     }
 
     int server_fd;
-    int numOfClients = 0;
     ConnectionManager connectionManager;
 };
 
