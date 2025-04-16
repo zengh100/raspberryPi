@@ -11,3 +11,4 @@ make it build and work: gpio_c++\socket\tcp_server_v8_ClassBased.02.cpp
 gpio_c++\socket\tcp_server_v8_ClassBased.03.cpp attemp to remove quit connection
 gpio_c++\socket\tcp_server_v8_ClassBased.04.cpp attemp to remove quit connection
 gpio_c++\socket\tcp_server_v8_ClassBased.05.cpp works now to remove quit connection
+Added web server to display pi pin status data in browser http://192.168.2.48:8180
